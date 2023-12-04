@@ -85,6 +85,11 @@ def pddlstream_from_problem(problem, base_limits=None, collisions=True, teleport
         bodies = bodies_from_type[get_parameter_name(ty)] if is_parameter(ty) else [ty]
         init += [('Stackable', b, s) for b in bodies]
         goal_literals += [('On', ty, s)]
+    for ty, pose in problem.goal_pose:
+        bodies = bodies_from_type[get_parameter_name(ty[0])] if is_parameter(ty[0]) else [ty[0]]
+        init += [('Stackable', b, ty[1]) for b in bodies]
+        goal_literals += [('AtPose', ty[0], pose)]
+        # goal_literals += [('AtPose', ty, pose)]
     goal_literals += [('Holding', a, b) for a, b in problem.goal_holding] + \
                      [('Cleaned', b)  for b in problem.goal_cleaned] + \
                      [('Cooked', b)  for b in problem.goal_cooked]
@@ -142,7 +147,7 @@ def main(verbose=True):
     parser.add_argument('-simulate', action='store_true', help='Simulates the system')
     args = parser.parse_args()
     print('Arguments:', args)
-
+    args.optimal=False
     problem_fn_from_name = {fn.__name__: fn for fn in PROBLEMS}
     if args.problem not in problem_fn_from_name:
         raise ValueError(args.problem)
